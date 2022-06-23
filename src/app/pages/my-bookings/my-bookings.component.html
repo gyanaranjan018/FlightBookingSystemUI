@@ -1,0 +1,73 @@
+<app-user-navbar></app-user-navbar>
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-2">Email:</div>
+      <div class="col-md-7">
+        <input
+          type="email"
+          placeholder="Enter Email"
+          class="form-control"
+          [value]="email"
+          (change)="onChange($event)"
+        />
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-primary" type="button" (click)="onSearch()">
+          Search
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card mt-3">
+  <table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th>Logo</th>
+        <th scope="col">Airline</th>
+        <th scope="col">PNR</th>
+        <th scope="col">Flight #</th>
+        <th scope="col">Date</th>
+        <th scope="col">From</th>
+        <th scope="col">To</th>
+        <th scope="col">Price</th>
+        <th scope="col">Discount</th>
+        <th scope="col">Final Amount</th>
+        <th scope="col">Seats</th>
+        <th scope="col">Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Type</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let booking of bookings">
+        <td>
+          <img
+            src="{{ booking.outBoundFlight.logoPath }}"
+            class="rounded"
+            height="40"
+            alt=""
+          />
+        </td>
+        <td>{{ booking.outBoundFlight.airlineName }}</td>
+        <td>{{ booking.id |uppercase }}</td>
+        <td>{{ booking.outBoundFlight.flightNumber }}</td>
+        <td>{{ booking.outBoundFlight.date | date }}</td>
+        <td>{{ booking.fromPlace }}</td>
+        <td>{{ booking.toPlace }}</td>
+        <td>{{ booking | amount }}</td>
+        <td>{{ booking | discount }}</td>
+        <td>{{ booking | finalAmount }}</td>
+        <td>{{ booking.noOfSeats }}</td>
+        <td>{{ booking.name }}</td>
+        <td>{{ booking.email }}</td>
+        <td>{{ booking.flightType }}</td>
+        <td>
+          <a [routerLink]="['/flight/booking', booking.id]">Details</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

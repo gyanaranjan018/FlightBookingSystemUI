@@ -1,0 +1,238 @@
+<app-user-navbar></app-user-navbar>
+<div *ngIf="bookingId === ''">
+    <div class="outer-container">
+      <div class="flight-container details row">
+        <div class="col-md-4">
+          <label>Flight type:</label> {{ state.flightType }}
+        </div>
+        <div class="col-md-4">
+          <label>Price:</label>
+          ₹{{ getPrice() }}
+        </div>
+        <div class="col-md-4">
+          <div class="row">
+            <div class="col-md-3">Discount Coupon:</div>
+            <div class="col-md-6">
+              <input
+                type="text"
+                class="form-control"
+                [disabled]="discountModel != null"
+                [(ngModel)]="code"
+              />
+            </div>
+            <div class="col-md-3">
+              <button
+                class="btn"
+                *ngIf="discountModel == null"
+                type="button"
+                (click)="applyCoupon()"
+              >
+                Apply
+              </button>
+              <button
+                class="btn"
+                *ngIf="discountModel != null"
+                type="button"
+                (click)="removeCoupon()"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+        <ng-container *ngIf="discountModel != null">
+          <div class="col-md-4">
+            <label>Discount Percent:</label>
+            {{ discountModel?.discountPercent }} %
+          </div>
+          <div class="col-md-4">
+            <label>Discount Amount:</label>
+            ₹{{ getDiscountAmount() }}
+          </div>
+  
+          <div class="col-md-4">
+            <label>Final Amount:</label>
+            ₹{{ getFinalAmount() }}
+          </div>
+        </ng-container>
+      </div>
+      <div class="flight-container">
+        <div class="f-col col-span">
+          <div class="f-logo">
+            <img src="{{ outBoundFlight.logoPath }}" alt="" />
+          </div>
+          <div class="flight-name">
+            <div class="sxr">{{ outBoundFlight.fromPlace.substring(0, 3) }}</div>
+            <div class="f-lead">{{ outBoundFlight.fromPlace }}</div>
+          </div>
+          <div class="spacer outbound"><i class="fas fa-plane"></i></div>
+          <div class="flight-name">
+            <div class="sxr">{{ outBoundFlight.toPlace.substring(0, 3) }}</div>
+            <div class="f-lead">{{ outBoundFlight.toPlace }}</div>
+          </div>
+        </div>
+        <div class="f-col">
+          <div>{{ outBoundFlight.flightNumber }}</div>
+        </div>
+        <div class="f-col">
+          <div>{{ outBoundFlight.airlineName }}</div>
+        </div>
+      </div>
+      <ng-container *ngIf="state.flightType === 'Roundtrip'">
+        <div class="flight-container">
+          <div class="f-col col-span">
+            <div class="f-logo">
+              <img src="{{ returnFlight?.logoPath }}" alt="" />
+            </div>
+            <div class="flight-name">
+              <div class="sxr">
+                {{ returnFlight?.toPlace?.substring(0, 3) }}
+              </div>
+              <div class="f-lead">{{ returnFlight?.toPlace }}</div>
+            </div>
+            <div class="spacer return"><i class="fas fa-plane"></i></div>
+            <div class="flight-name">
+              <div class="sxr">
+                {{ returnFlight?.fromPlace?.substring(0, 3) }}
+              </div>
+              <div class="f-lead">{{ returnFlight?.fromPlace }}</div>
+            </div>
+          </div>
+          <div class="f-col">
+            <div>{{ returnFlight?.flightNumber }}</div>
+          </div>
+          <div class="f-col">
+            <div>{{ returnFlight?.airlineName }}</div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+    <div class="card p-2">
+      <form [formGroup]="bookForm" (submit)="onSubmit()">
+        <div class="row">
+          <div class="form-group col-md-6">
+            <label for="name">Name</label>
+            <input type="text" formControlName="name" class="form-control" />
+            <app-validator
+              [abstractControl]="bookForm.get('name')"
+              [message]="'Name is required'"
+              [submitted]="submitted"
+            ></app-validator>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="email">Email</label>
+            <input type="email" formControlName="email" class="form-control" />
+            <app-validator
+              [abstractControl]="bookForm.get('email')"
+              [message]="'Email is required'"
+              [submitted]="submitted"
+            ></app-validator>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="meals">Meal on Outboard</label>
+            <select
+              formControlName="meals"
+              id="meals"
+              class="form-control"
+              required
+            >
+              <option value="None" [selected]="true">None</option>
+              <option value="Veg">Veg</option>
+              <option value="NonVeg">NonVeg</option>
+              <option value="Both">Both</option>
+            </select>
+          </div>
+          <ng-container *ngIf="state.flightType === 'Roundtrip'">
+            <div class="form-group col-md-6">
+              <label for="returnMeals">Meal on return</label>
+              <select
+                formControlName="returnMeals"
+                id="returnMeals"
+                class="form-control"
+                required
+              >
+                <option value="None" [selected]="true">None</option>
+                <option value="Veg">Veg</option>
+                <option value="NonVeg">NonVeg</option>
+                <option value="Both">Both</option>
+              </select>
+            </div>
+          </ng-container>
+        </div>
+        <ng-container formArrayName="bookingDetails">
+          <div class="row">
+            <h4 class="col-md-9">Passenger Details</h4>
+            <button
+              (click)="addDetail()"
+              type="button"
+              class="btn btn-primary col-md-3"
+            >
+              Add Seat
+            </button>
+          </div>
+          <ng-container
+            *ngFor="let detailForm of details.controls; let i = index"
+          >
+            <div [formGroup]="asFormGroup(detailForm)">
+              <div class="row mt-2">
+                <div class="form-group col-md-3">
+                  <label class="control-label">Name</label>
+                  <input
+                    type="text"
+                    formControlName="name"
+                    class="form-control"
+                  />
+                  <app-validator
+                    [abstractControl]="detailForm.get('name')"
+                    [message]="'Passenger name is required'"
+                    [submitted]="submitted"
+                  ></app-validator>
+                </div>
+                <div class="form-group col-md-3">
+                  <label class="control-label">Gender</label>
+                  <select formControlName="gender" class="form-control">
+                    <option value="Male" [selected]="true">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-2">
+                  <label class="control-label">Age</label>
+                  <input
+                    type="number"
+                    formControlName="age"
+                    class="form-control"
+                  />
+                </div>
+                <div class="form-group col-md-2">
+                  <label class="control-label">Seat No</label>
+                  <input
+                    type="number"
+                    formControlName="seatNumber"
+                    class="form-control"
+                  />
+                </div>
+                <div class="col-md-2">
+                  <button
+                    (click)="removeDetail(i)"
+                    type="button"
+                    class="btn btn-danger"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+        <app-loader-button [submitting]="submitting">Book</app-loader-button>
+      </form>
+    </div>
+  </div>
+  
+  <div *ngIf="bookingId !== ''" class="text-center p-5 card">
+    <h3 class="text-success">Your flight has been booked successfully.</h3>
+    <div class="p-2">
+      <a [routerLink]="['/flight/booking', bookingId]">Click here</a> to
+      check the booking details
+    </div>
+  </div>

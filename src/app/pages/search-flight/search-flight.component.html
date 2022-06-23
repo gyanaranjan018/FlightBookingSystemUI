@@ -1,0 +1,228 @@
+<app-user-navbar></app-user-navbar>
+<div class="card">
+  <form (ngSubmit)="onSubmit()" [formGroup]="searchForm">
+    <div class="card-header"><h3>Search Flight</h3></div>
+
+    <div class="card-body">
+      <div class="row">
+        <div class="form-group col-md-4">
+          <label for="fromPlace">Source</label>
+          <select
+            formControlName="fromPlaceId"
+            id="fromPlace"
+            class="form-control"
+          >
+            <option *ngFor="let airport of airports" [value]="airport.id">
+              {{ airport.name }}({{ airport.city }})
+            </option>
+          </select>
+          <app-validator
+            [abstractControl]="searchForm.get('fromPlaceId')"
+            [message]="'Source is required'"
+            [submitted]="submitted"
+          >
+          </app-validator>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="toPlace">Destination</label>
+          <select formControlName="toPlaceId" id="toPlace" class="form-control">
+            <option *ngFor="let airport of airports" [value]="airport.id">
+              {{ airport.name }}({{ airport.city }})
+            </option>
+          </select>
+          <app-validator
+            [abstractControl]="searchForm.get('toPlaceId')"
+            [message]="'Destination is required'"
+            [submitted]="submitted"
+          >
+          </app-validator>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="date">Date</label>
+          <input
+            type="date"
+            class="form-control"
+            id="date"
+            formControlName="date"
+          />
+          <app-validator
+            [abstractControl]="searchForm.get('date')"
+            [message]="'Date required'"
+            [submitted]="submitted"
+          >
+          </app-validator>
+        </div>
+        <div class="form-group col-md-4">
+          <label for="flightType">FlighType</label>
+          <select
+            formControlName="flightType"
+            id="flightType"
+            class="form-control"
+            required
+          >
+            <option value="Oneway" [selected]="true">One way</option>
+            <option value="Roundtrip">Round trip</option>
+          </select>
+        </div>
+        <ng-container *ngIf="searchForm.value.flightType === 'Roundtrip'">
+          <div class="form-group col-md-4">
+            <label for="returnDate">Return Date</label>
+            <input
+              type="date"
+              class="form-control"
+              id="returnDate"
+              formControlName="returnDate"
+            />
+          </div>
+        </ng-container>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="row justify-content-end mr-2">
+        <button type="submit" class="btn btn-primary">Search</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<ng-container *ngIf="searchForm.value.flightType === 'Oneway'">
+  <div class="card">
+    <table class="table mt-3">
+      <thead class="thead-dark">
+        <tr>
+          <th>Logo</th>
+          <th scope="col">Airline</th>
+          <th scope="col">Flight #</th>
+          <th scope="col">Date</th>
+          <th scope="col">From</th>
+          <th scope="col">To</th>
+          <th scope="col">Price</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let flight of flights.outboundFlights">
+          <td>
+            <img
+              src="{{ flight.logoPath }}"
+              class="rounded"
+              height="40"
+              alt=""
+            />
+          </td>
+          <td>{{ flight.airlineName }}</td>
+          <td>{{ flight.flightNumber }}</td>
+          <td>{{ flight.date | date }}</td>
+          <td>{{ flight.fromPlace }}</td>
+          <td>{{ flight.toPlace }}</td>
+          <td>₹{{ flight.price }}</td>
+          <td>
+            <button
+              (click)="bookFlight(flight.inventoryId)"
+              class="btn btn-primary"
+            >
+              Book
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="searchForm.value.flightType === 'Roundtrip'">
+  <div class="row selected-header mt-2">
+    <div class="col-md-4">
+      <div class="row">
+        <div class="col-md-2">Airline</div>
+        <div class="col-md-6">Location</div>
+        <div class="col-md-3">Flight</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="row">
+        <div class="col-md-2">Airline</div>
+        <div class="col-md-6">Location</div>
+        <div class="col-md-3">Flight</div>
+      </div>
+    </div>
+    <div class="col-md-4"></div>
+  </div>
+  <div
+    class="row airline-selected mt-2"
+    *ngIf="outboundFlight !== null && returnFlight !== null"
+  >
+    <div class="col-md-4">
+      <div class="row">
+        <div class="col-md-2">
+          <div class="airline-logo">
+            <img
+              src="{{ outboundFlight?.logoPath }}"
+              height="50"
+              width="50"
+              class="rounded-circle"
+              title="{{ outboundFlight?.airlineName }}"
+            />
+          </div>
+        </div>
+        <div class="col-md-6">
+          {{ outboundFlight?.toPlace + " - " + outboundFlight?.fromPlace }}
+        </div>
+        <div class="col-md-3">{{ outboundFlight?.flightNumber }}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="row">
+        <div class="col-md-2">
+          <div class="airline-logo">
+            <img
+              src="{{ returnFlight?.logoPath }}"
+              height="50"
+              width="50"
+              class="rounded-circle"
+              title="{{ returnFlight?.airlineName }}"
+            />
+          </div>
+        </div>
+        <div class="col-md-6">
+          {{ returnFlight?.toPlace + " - " + returnFlight?.fromPlace }}
+        </div>
+        <div class="col-md-3">{{ returnFlight?.flightNumber }}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="row justify-content-end">
+        <div class="text-warning total-price">
+          ₹{{ (outboundFlight?.price || 0) + (returnFlight?.price || 0) }}
+        </div>
+
+        <button class="btn btn-primary" (click)="bookWithReturn()">
+          Proceed
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    class="row mt-5 p-1 justify-content-between"
+    *ngIf="outboundFlight !== null && returnFlight !== null"
+  >
+    <div class="col-md-5">
+      <app-airline-header></app-airline-header>
+      <app-airline-body
+        (click)="selectOutbound(flight.inventoryId)"
+        *ngFor="let flight of flights.outboundFlights"
+        [flight]="flight"
+        [selected]="flight.inventoryId === outboundFlight?.inventoryId"
+      ></app-airline-body>
+    </div>
+    <div class="col-md-5">
+      <app-airline-header></app-airline-header>
+      <app-airline-body
+        (click)="selectReturn(flight.inventoryId)"
+        *ngFor="let flight of flights.returnFlights"
+        [flight]="flight"
+        [selected]="flight.inventoryId === returnFlight?.inventoryId"
+      ></app-airline-body>
+    </div>
+  </div>
+</ng-container>
